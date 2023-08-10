@@ -63,18 +63,11 @@ A API usa uma chave secreta para JWT (my-secret-key conforme mostrado no código
 
 ## Métodos da API:
 
-GET    /<object>
-GET    /<object>/<id>
-POST   /<object>
-PUT    /<object>/<id>
-PATCH  /<object>/<id>
-DELETE /<object>/<id>
+   * GET    /object
+   * GET    /object/id
+   * POST   /object
+   * PUT    /object/id
+   * PATCH  /object/id
+   * DELETE /object/id
 
 **Bom desenvolvimento! 🚀**
-
-
-
-
-
-
-
