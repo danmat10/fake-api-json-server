@@ -11,8 +11,8 @@ Este repositório está configurado com uma fake-API personalizada usando o JSON
 
 1. **Clone o Repositório:**
    ```bash
-   git clone <url-do-repositório>
-   cd <diretório-do-repositório>
+   git clone https://github.com/danmat10/fake-api-json-server.git
+   cd fake-api-json-server
    
 2. **Instale as Dependências:**
    ```bash
