@@ -1,9 +1,17 @@
 {
   "users": [
     {
-      "id": 1,
       "login": "user",
-      "password": "user"
+      "name": "",
+      "id": 1,
+      "cpf": "",
+      "registration": "",
+      "permissions": "",
+      "password": "user",
+      "email": "",
+      "active": true,
+      "photo": "",
+      "contatos": []
     }
   ]
 }
