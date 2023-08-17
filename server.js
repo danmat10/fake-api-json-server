@@ -3,6 +3,16 @@ const jwt = require("jsonwebtoken");
 const fs = require("fs").promises;
 const express = require("express");
 const path = require("path");
+const multer = require("multer");
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+const upload = multer({ storage: storage });
 
 const UPLOADS_PATH = path.join(__dirname, "uploads");
 const DB_PATH = "db.json";
@@ -14,15 +24,14 @@ const router = jsonServer.router(DB_PATH);
 const middlewares = jsonServer.defaults();
 
 server.use(middlewares);
-server.use(express.json({ limit: "25mb" }));
-server.use(express.urlencoded({ limit: "25mb", extended: true }));
 
+// Users routes
+server.post("/users/:login/photo", upload.single("photo"), uploadUserPhoto);
+
+server.use(jsonServer.bodyParser);
 // Auth routes
 server.post("/auth/login", login);
 server.post("/auth/refresh", refreshToken);
-
-// Users routes
-server.post("/users/:login/photo", uploadUserPhoto);
 
 // JWT validation middleware
 server.use("/db", validateJWT, router);
@@ -68,26 +77,17 @@ function refreshToken(req, res) {
 
 async function uploadUserPhoto(req, res) {
   const userLogin = req.params.login;
-  const { photo } = req.body;
+  const photo = req.file;
+
   if (!photo) return res.status(400).send("Nenhuma foto enviada.");
 
-  const imagePath = path.join(UPLOADS_PATH, `${userLogin}.jpg`);
-  const imageUrl = `/uploads/${userLogin}.jpg`;
-  const base64Only = photo.split(";base64,").pop();
-
   try {
-    await savePhoto(imagePath, base64Only);
-    await updateUserPhotoInDb(userLogin, imageUrl);
-    res.status(200).json({ photo: imageUrl });
+    await updateUserPhotoInDb(userLogin, photo.path.replace("\\", "/"));
+    res.status(200).json({ photo: photo.path.replace("\\", "/") });
   } catch (error) {
     console.error("Erro ao salvar foto:", error);
     res.status(500).send("Erro interno do servidor.");
   }
-}
-
-async function savePhoto(filePath, base64Image) {
-  const binaryImage = Buffer.from(base64Only, "base64");
-  await fs.writeFile(filePath, binaryImage);
 }
 
 function validateJWT(req, res, next) {
@@ -117,11 +117,6 @@ function generateAccessToken(login, role) {
 function getUserInfo(user) {
   const { login, name, cpf, registration, email, photo } = user;
   return { login, name, cpf, registration, email, photo };
-}
-
-async function savePhoto(imagePath, photo) {
-  const imageBuffer = Buffer.from(photo, "base64");
-  await fs.writeFile(imagePath, imageBuffer);
 }
 
 async function updateUserPhotoInDb(userLogin, imageUrl) {
