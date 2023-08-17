@@ -115,8 +115,8 @@ function generateAccessToken(login, role) {
 }
 
 function getUserInfo(user) {
-  const { login, name, cpf, registration, email, photo } = user;
-  return { login, name, cpf, registration, email, photo };
+  const { id, login, name, cpf, registration, email, photo } = user;
+  return { id, login, name, cpf, registration, email, photo };
 }
 
 async function updateUserPhotoInDb(userLogin, imageUrl) {
