@@ -69,16 +69,25 @@ function refreshToken(req, res) {
 async function uploadUserPhoto(req, res) {
   const userLogin = req.params.login;
   const { photo } = req.body;
-
   if (!photo) return res.status(400).send("Nenhuma foto enviada.");
 
   const imagePath = path.join(UPLOADS_PATH, `${userLogin}.jpg`);
   const imageUrl = `/uploads/${userLogin}.jpg`;
+  const base64Only = photo.split(";base64,").pop();
 
-  await savePhoto(imagePath, photo);
-  await updateUserPhotoInDb(userLogin, imageUrl);
+  try {
+    await savePhoto(imagePath, base64Only);
+    await updateUserPhotoInDb(userLogin, imageUrl);
+    res.status(200).json({ photo: imageUrl });
+  } catch (error) {
+    console.error("Erro ao salvar foto:", error);
+    res.status(500).send("Erro interno do servidor.");
+  }
+}
 
-  res.status(200).json({ photo: imageUrl });
+async function savePhoto(filePath, base64Image) {
+  const binaryImage = Buffer.from(base64Only, "base64");
+  await fs.writeFile(filePath, binaryImage);
 }
 
 function validateJWT(req, res, next) {
