@@ -34,6 +34,11 @@ server.use(jsonServer.bodyParser);
 // Auth routes
 server.post("/auth/login", login);
 server.post("/auth/refresh", refreshToken);
+server.put(
+  "/auth/user/:login/change-password",
+  validateJWT,
+  changeUserPassword
+);
 
 // JWT validation middleware
 server.use("/db", validateJWT, router);
@@ -46,6 +51,40 @@ server.use("/uploads", express.static(UPLOADS_PATH));
 server.listen(3030, () => {
   console.log("JSON Server is running on port 3030");
 });
+
+async function changeUserPassword(req, res) {
+  const userLogin = req.params.login;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).send("Senha atual e nova senha são necessárias.");
+  }
+
+  try {
+    const usersData = JSON.parse(await fs.readFile(DB_PATH, "utf8"));
+    console.log(usersData);
+    const user = usersData.users.find((u) => u.id == userLogin);
+
+    if (!user) {
+      return res.status(404).send("Usuário não encontrado.");
+    }
+
+    if (user.password !== currentPassword) {
+      return res.status(400).send("Senha atual incorreta.");
+    }
+
+    // Atualiza a senha do usuário
+    user.password = newPassword;
+
+    // Salva a atualização no db.json
+    await fs.writeFile(DB_PATH, JSON.stringify(usersData));
+
+    res.status(200).send("Senha atualizada com sucesso!");
+  } catch (error) {
+    console.error("Erro ao alterar a senha:", error);
+    res.status(500).send("Erro interno do servidor.");
+  }
+}
 
 async function login(req, res) {
   const { login, password } = req.body;
