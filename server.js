@@ -4,6 +4,8 @@ const fs = require("fs").promises;
 const express = require("express");
 const path = require("path");
 const multer = require("multer");
+const axios = require("axios");
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
@@ -78,16 +80,34 @@ function refreshToken(req, res) {
 async function uploadUserPhoto(req, res) {
   const userLogin = req.params.login;
   const photo = req.file;
+  const token = getTokenFromHeader(req); // Pega o token do cabeçalho da requisição
 
-  if (!photo) return res.status(400).send("Nenhuma foto enviada.");
-
-  try {
-    await updateUserPhotoInDb(userLogin, photo.path.replace("\\", "/"));
-    res.status(200).json({ photo: photo.path.replace("\\", "/") });
-  } catch (error) {
-    console.error("Erro ao salvar foto:", error);
-    res.status(500).send("Erro interno do servidor.");
+  if (!token) {
+    return res.status(401).send("Token não fornecido.");
   }
+
+  // Verifica a validade do token
+  jwt.verify(token, SECRET_KEY, async (err, decodedToken) => {
+    if (err) {
+      return res.status(403).send("Token inválido.");
+    }
+
+    if (!photo) {
+      return res.status(400).send("Nenhuma foto enviada.");
+    }
+
+    try {
+      await updateUserPhotoInDb(
+        userLogin,
+        photo.path.replace("\\", "/"),
+        token
+      );
+      res.status(200).json({ photo: photo.path.replace("\\", "/") });
+    } catch (error) {
+      console.error("Erro ao salvar foto:", error);
+      res.status(500).send("Erro interno do servidor.");
+    }
+  });
 }
 
 function validateJWT(req, res, next) {
@@ -119,14 +139,23 @@ function getUserInfo(user) {
   return { id, login, name, cpf, registration, email, photo };
 }
 
-async function updateUserPhotoInDb(userLogin, imageUrl) {
+async function updateUserPhotoInDb(userLogin, imageUrl, token) {
   const usersData = JSON.parse(await fs.readFile(DB_PATH, "utf8"));
-  const user = usersData.users.find((u) => u.id == userLogin);
+  const user = { photo: imageUrl };
 
-  if (!user) throw new Error("Usuário não encontrado.");
-
-  user.photo = imageUrl;
-  await fs.writeFile(DB_PATH, JSON.stringify(usersData));
+  try {
+    await axios({
+      method: "patch",
+      url: `http://localhost:3030/db/users/${userLogin}`,
+      data: user,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar a foto do usuário:", error);
+    throw error;
+  }
 }
 
 function getTokenFromHeader(req) {
