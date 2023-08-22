@@ -62,7 +62,6 @@ async function changeUserPassword(req, res) {
 
   try {
     const usersData = JSON.parse(await fs.readFile(DB_PATH, "utf8"));
-    console.log(usersData);
     const user = usersData.users.find((u) => u.id == userLogin);
 
     if (!user) {
@@ -134,14 +133,14 @@ async function uploadUserPhoto(req, res) {
     if (!photo) {
       return res.status(400).send("Nenhuma foto enviada.");
     }
-
+    console.log(photo.path);
     try {
       await updateUserPhotoInDb(
         userLogin,
-        photo.path.replace("\\", "/"),
+        photo.path.replace("uploads\\", ""),
         token
       );
-      res.status(200).json({ photo: photo.path.replace("\\", "/") });
+      res.status(200).json({ photo: photo.path.replace("uploads\\", "") });
     } catch (error) {
       console.error("Erro ao salvar foto:", error);
       res.status(500).send("Erro interno do servidor.");
@@ -179,7 +178,6 @@ function getUserInfo(user) {
 }
 
 async function updateUserPhotoInDb(userLogin, imageUrl, token) {
-  const usersData = JSON.parse(await fs.readFile(DB_PATH, "utf8"));
   const user = { photo: imageUrl };
 
   try {
