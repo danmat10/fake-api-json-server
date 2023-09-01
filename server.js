@@ -41,7 +41,7 @@ server.put(
 );
 
 // JWT validation middleware
-server.use("/db", validateJWT, router);
+server.use("/api", validateJWT, router);
 server.use("/users", validateJWT, router);
 
 // Static route for uploads
