@@ -2,10 +2,10 @@
   "users": [
     {
       "id": 1,
-      "nmUsuario": "Daniel",
-      "nrMatricula": 12345,
+      "nmUsuario": "Administrador",
+      "nrMatricula": "111",
       "nrCpf": "123.123.123-22",
-      "password": "user",
+      "password": "123456",
       "ftFoto": null,
       "contacts": [
         {
@@ -17,6 +17,36 @@
       "flStatus": "Ativo",
       "typeUser": "Admin",
       "photo": "1693171542815-profile.jpg"
+    },
+    {
+      "nmUsuario": "Gestor",
+      "nrMatricula": "222",
+      "nrCpf": "22.222.222/2222-22",
+      "typeUser": "Gestor",
+      "flStatus": "Ativo",
+      "contacts": [
+        {
+          "typeContacts": "E-mail",
+          "dsContato": "requisitante@gmail.com"
+        }
+      ],
+      "password": "123456",
+      "id": 2
+    },
+    {
+      "nmUsuario": "Peão",
+      "nrMatricula": "333",
+      "nrCpf": "33.333.333/3333-33",
+      "typeUser": "Peão",
+      "flStatus": "Ativo",
+      "contacts": [
+        {
+          "typeContacts": "E-mail",
+          "dsContato": "peao@gmail.com"
+        }
+      ],
+      "password": "123456",
+      "id": 3
     }
   ],
   "departments": [],
