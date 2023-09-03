@@ -192,7 +192,7 @@ async function updateUserPhotoInDb(userLogin, imageUrl, token) {
   try {
     await axios({
       method: "patch",
-      url: `http://localhost:3030/db/users/${userLogin}`,
+      url: `http://localhost:3030/api/users/${userLogin}`,
       data: user,
       headers: {
         Authorization: `Bearer ${token}`,
