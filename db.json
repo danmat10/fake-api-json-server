@@ -2,11 +2,10 @@
   "users": [
     {
       "id": 1,
-      "login": "user",
-      "password": "user",
       "nmUsuario": "Daniel",
       "nrMatricula": 12345,
       "nrCpf": "123.123.123-22",
+      "password": "user",
       "ftFoto": null,
       "contacts": [
         {
@@ -20,26 +19,7 @@
       "photo": "1693171542815-profile.jpg"
     }
   ],
-  "departments": [
-    {
-      "nmDepartamento": "Almoxarifado",
-      "usuario": {
-        "id": 1,
-        "nmUsuario": "Daniel",
-        "nrMatricula": 12345,
-        "nrCpf": "123.123.123-22",
-        "ftFoto": null,
-        "contacts": [
-          {
-            "idContacts": 1,
-            "typeContacts": "E-mail",
-            "dsContato": "daniel@daniel.com"
-          }
-        ],
-        "flStatus": "Ativo",
-        "typeUser": "Admin"
-      },
-      "id": 1
-    }
-  ]
+  "departments": [],
+  "constructions": [],
+  "patrimonies": []
 }

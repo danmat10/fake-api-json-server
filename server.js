@@ -31,6 +31,13 @@ server.use(middlewares);
 server.post("/users/:login/photo", upload.single("photo"), uploadUserPhoto);
 
 server.use(jsonServer.bodyParser);
+server.use((req, res, next) => {
+  if (req.method === "POST" && req.path === "/api/users") {
+    req.body.password = "123456";
+  }
+  next();
+});
+
 // Auth routes
 server.post("/auth/login", login);
 server.post("/auth/refresh", refreshToken);
@@ -89,7 +96,9 @@ async function login(req, res) {
   const { login, password } = req.body;
   const usersData = JSON.parse(await fs.readFile(DB_PATH, "utf8"));
   const user = usersData.users.find(
-    (u) => u.login === login && u.password === password
+    (u) =>
+      (u.nrMatricula == login && u.password == password) ||
+      (u.nrCpf == login && u.password == password)
   );
 
   if (user) {
