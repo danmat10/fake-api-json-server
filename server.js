@@ -39,8 +39,8 @@ server.use((req, res, next) => {
 });
 
 // Auth routes
-server.post("/auth/login", login);
-server.post("/auth/refresh", refreshToken);
+server.post("/api/auth/login", login);
+server.post("/api/auth/refreshToken", refreshToken);
 server.put(
   "/auth/user/:login/change-password",
   validateJWT,
@@ -111,13 +111,13 @@ async function login(req, res) {
 }
 
 function refreshToken(req, res) {
-  const { refresh_token } = req.body;
+  const { refreshToken } = req.body;
 
-  if (refresh_token) {
-    jwt.verify(refresh_token, SECRET_KEY, (err, user) => {
+  if (refreshToken) {
+    jwt.verify(refreshToken, SECRET_KEY, (err, user) => {
       if (err) return res.sendStatus(403);
       const new_access_token = generateAccessToken(user.email, user.role);
-      res.json({ access_token: new_access_token });
+      res.json({ accessToken: new_access_token });
     });
   } else {
     res.sendStatus(401);
@@ -172,9 +172,9 @@ function validateJWT(req, res, next) {
 }
 
 function generateTokensForUser(login, role) {
-  const access_token = generateAccessToken(login, role);
-  const refresh_token = jwt.sign({ login, role }, SECRET_KEY);
-  return { access_token, refresh_token };
+  const accessToken = generateAccessToken(login, role);
+  const refreshToken = jwt.sign({ login, role }, SECRET_KEY);
+  return { accessToken, refreshToken };
 }
 
 function generateAccessToken(login, role) {
