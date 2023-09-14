@@ -28,7 +28,12 @@ const middlewares = jsonServer.defaults();
 server.use(middlewares);
 
 // Users routes
-server.post("/users/:login/photo", upload.single("photo"), uploadUserPhoto);
+server.post(
+  "/api/users/:login",
+  validateJWT,
+  upload.single("photo"),
+  uploadUserPhoto
+);
 
 server.use(jsonServer.bodyParser);
 server.use((req, res, next) => {
@@ -42,10 +47,11 @@ server.use((req, res, next) => {
 server.post("/api/auth/login", login);
 server.post("/api/auth/refreshToken", refreshToken);
 server.put(
-  "/auth/user/:login/change-password",
+  "/api/users/:login/change-password",
   validateJWT,
   changeUserPassword
 );
+server.get("/api/users/:login/foto", getPhoto);
 
 // JWT validation middleware
 server.use("/api", validateJWT, router);
@@ -59,11 +65,46 @@ server.listen(3030, () => {
   console.log("JSON Server is running on port 3030");
 });
 
+async function getPhoto(req, res) {
+  const userLogin = req.params.login;
+
+  try {
+    // Ler os dados do arquivo db.json
+    const usersData = JSON.parse(await fs.readFile(DB_PATH, "utf8"));
+
+    // Procura o usuário pelo ID (login)
+    const user = usersData.users.find((u) => u.id == userLogin);
+
+    if (!user) {
+      return res.status(404).send("Usuário não encontrado.");
+    }
+
+    // Obter o caminho da foto
+    if (!user.photo) {
+      return res.status(404).send("Foto não encontrada.");
+    }
+    const photoPath = path.join(UPLOADS_PATH, user.photo);
+    // Verificar se a foto existe
+    try {
+      res.sendFile(photoPath, (err) => {
+        if (err) {
+          res.status(404).send("Foto não encontrada.");
+        }
+      });
+    } catch (err) {
+      res.status(404).send("Foto não encontrada.");
+    }
+  } catch (error) {
+    console.error("Erro ao obter a foto:", error);
+    res.status(500).send("Erro interno do servidor.");
+  }
+}
+
 async function changeUserPassword(req, res) {
   const userLogin = req.params.login;
-  const { currentPassword, newPassword } = req.body;
+  const { currentPassword, newPassword1 } = req.body;
 
-  if (!currentPassword || !newPassword) {
+  if (!currentPassword || !newPassword1) {
     return res.status(400).send("Senha atual e nova senha são necessárias.");
   }
 
@@ -80,7 +121,7 @@ async function changeUserPassword(req, res) {
     }
 
     // Atualiza a senha do usuário
-    user.password = newPassword;
+    user.password = newPassword1;
 
     // Salva a atualização no db.json
     await fs.writeFile(DB_PATH, JSON.stringify(usersData));
@@ -127,34 +168,20 @@ function refreshToken(req, res) {
 async function uploadUserPhoto(req, res) {
   const userLogin = req.params.login;
   const photo = req.file;
-  const token = getTokenFromHeader(req); // Pega o token do cabeçalho da requisição
+  const token = getTokenFromHeader(req);
 
-  if (!token) {
-    return res.status(401).send("Token não fornecido.");
+  if (!photo) {
+    return res.status(400).send("Nenhuma foto enviada.");
   }
 
-  // Verifica a validade do token
-  jwt.verify(token, SECRET_KEY, async (err, decodedToken) => {
-    if (err) {
-      return res.status(403).send("Token inválido.");
-    }
-
-    if (!photo) {
-      return res.status(400).send("Nenhuma foto enviada.");
-    }
-    console.log(photo.path);
-    try {
-      await updateUserPhotoInDb(
-        userLogin,
-        photo.path.replace("uploads\\", ""),
-        token
-      );
-      res.status(200).json({ photo: photo.path.replace("uploads\\", "") });
-    } catch (error) {
-      console.error("Erro ao salvar foto:", error);
-      res.status(500).send("Erro interno do servidor.");
-    }
-  });
+  try {
+    const photoPath = photo.path.replace("uploads\\", "");
+    await updateUserPhotoInDb(userLogin, photoPath, token);
+    res.status(200).json({ photo: photoPath });
+  } catch (error) {
+    console.error("Erro ao salvar foto:", error);
+    res.status(500).send("Erro interno do servidor.");
+  }
 }
 
 function validateJWT(req, res, next) {
